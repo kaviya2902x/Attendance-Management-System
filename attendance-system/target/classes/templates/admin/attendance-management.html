@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #7c3aed;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #f8fafc;
+        }
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        .sidebar {
+            background: white;
+            min-height: calc(100vh - 72px);
+            border-right: 1px solid #e2e8f0;
+        }
+        .main-content {
+            padding: 20px;
+            min-height: calc(100vh - 72px);
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .table th {
+            background-color: #f8fafc;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .filter-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-calendar-check"></i> Attendance System
+        </a>
+        <div class="d-flex align-items-center">
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i>
+                    <span th:text="${user.firstName + ' ' + user.lastName}"></span>
+                    <span class="badge bg-warning ms-1">Admin</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" th:href="@{/admin/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" th:href="@{/logout}">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 sidebar d-none d-lg-block">
+            <div class="pt-4">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/users}">
+                            <i class="bi bi-people"></i> User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/admin/attendance-management}">
+                            <i class="bi bi-calendar-date"></i> Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/leave-management}">
+                            <i class="bi bi-calendar2-week"></i> Leave Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/regularization-management}">
+                            <i class="bi bi-clock-history"></i> Regularization
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/reports}">
+                            <i class="bi bi-bar-chart"></i> Reports
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-lg-10 main-content">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-2">Attendance Management</h1>
+                    <p class="text-muted">View and manage employee attendance records</p>
+                </div>
+                <a th:href="@{/admin/dashboard}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Filter Card -->
+            <div class="card filter-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-funnel"></i> Filter Attendance Records</h5>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-10">
+                            <label class="form-label">Select Date</label>
+                            <input type="date" name="date" class="form-control"
+                                   th:value="${selectedDate != null ? #temporals.format(selectedDate, 'yyyy-MM-dd') : #temporals.format(today, 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> View
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Attendance Summary -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="h4 fw-bold text-success"
+                                 th:text="${attendanceList.stream().filter(a -> a.status == 'PRESENT').count()}">0</div>
+                            <small class="text-muted">Present Today</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="h4 fw-bold text-danger"
+                                 th:text="${attendanceList.stream().filter(a -> a.status == 'ABSENT').count()}">0</div>
+                            <small class="text-muted">Absent Today</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="h4 fw-bold text-warning"
+                                 th:text="${attendanceList.stream().filter(a -> a.punchIn != null && a.punchOut == null).count()}">0</div>
+                            <small class="text-muted">Active Sessions</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="h4 fw-bold text-primary"
+                                 th:text="${attendanceList.size()}">0</div>
+                            <small class="text-muted">Total Records</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-calendar-week"></i> Attendance for
+                            <span th:text="${#temporals.format(selectedDate != null ? selectedDate : today, 'dd MMMM yyyy')}"></span>
+                        </span>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="attendanceTable">
+                            <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Punch In</th>
+                                <th>Punch Out</th>
+                                <th>Total Hours</th>
+                                <th>Late (min)</th>
+                                <th>Overtime</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="attendance : ${attendanceList}">
+                                <td th:text="${attendance.user.employeeId}"></td>
+                                <td>
+                                    <strong th:text="${attendance.user.firstName + ' ' + attendance.user.lastName}"></strong>
+                                </td>
+                                <td th:text="${attendance.user.department}"></td>
+                                <td>
+                                            <span th:if="${attendance.punchIn}"
+                                                  th:text="${#temporals.format(attendance.punchIn, 'hh:mm a')}"></span>
+                                    <span th:unless="${attendance.punchIn}" class="text-muted">---</span>
+                                </td>
+                                <td>
+                                            <span th:if="${attendance.punchOut}"
+                                                  th:text="${#temporals.format(attendance.punchOut, 'hh:mm a')}"></span>
+                                    <span th:unless="${attendance.punchOut}" class="text-muted">---</span>
+                                </td>
+                                <td>
+                                            <span th:if="${attendance.totalHours}"
+                                                  class="fw-bold"
+                                                  th:text="${attendance.totalHours + ' hrs'}"></span>
+                                    <span th:unless="${attendance.totalHours}" class="text-muted">---</span>
+                                </td>
+                                <td>
+                                            <span th:if="${attendance.lateMinutes and attendance.lateMinutes > 0}"
+                                                  class="text-danger fw-bold"
+                                                  th:text="${attendance.lateMinutes}"></span>
+                                    <span th:unless="${attendance.lateMinutes and attendance.lateMinutes > 0}">0</span>
+                                </td>
+                                <td>
+                                            <span th:if="${attendance.overtimeHours and attendance.overtimeHours > 0}"
+                                                  class="text-success fw-bold"
+                                                  th:text="${attendance.overtimeHours + ' hrs'}"></span>
+                                    <span th:unless="${attendance.overtimeHours and attendance.overtimeHours > 0}">---</span>
+                                </td>
+                                <td>
+                                            <span th:if="${attendance.status == 'PRESENT'}"
+                                                  class="badge bg-success status-badge">Present</span>
+                                    <span th:if="${attendance.status == 'ABSENT'}"
+                                          class="badge bg-danger status-badge">Absent</span>
+                                    <span th:if="${attendance.status == 'LATE'}"
+                                          class="badge bg-warning status-badge">Late</span>
+                                    <span th:if="${attendance.status == 'HALF_DAY'}"
+                                          class="badge bg-info status-badge">Half Day</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editAttendanceModal"
+                                                th:data-id="${attendance.id}"
+                                                th:data-punchin="${attendance.punchIn != null ? #temporals.format(attendance.punchIn, 'yyyy-MM-dd\'T\'HH:mm') : ''}"
+                                                th:data-punchout="${attendance.punchOut != null ? #temporals.format(attendance.punchOut, 'yyyy-MM-dd\'T\'HH:mm') : ''}"
+                                                th:data-status="${attendance.status}"
+                                                th:data-notes="${attendance.notes}"
+                                                onclick="populateEditForm(this)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${attendanceList.isEmpty()}">
+                                <td colspan="10" class="text-center text-muted py-4">
+                                    <i class="bi bi-calendar-x display-6 d-block mb-2"></i>
+                                    No attendance records found for selected date
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Edit Attendance Modal -->
+<div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square"></i> Edit Attendance
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editAttendanceForm" th:action="@{/admin/attendance/update/{id}}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editAttendanceId" name="id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Punch In</label>
+                        <input type="datetime-local" id="editPunchIn" name="punchIn" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Punch Out</label>
+                        <input type="datetime-local" id="editPunchOut" name="punchOut" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select id="editStatus" name="status" class="form-select">
+                            <option value="PRESENT">Present</option>
+                            <option value="ABSENT">Absent</option>
+                            <option value="LATE">Late</option>
+                            <option value="HALF_DAY">Half Day</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea id="editNotes" name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Initialize date picker
+    flatpickr("input[type=date]", {
+        dateFormat: "Y-m-d",
+        maxDate: "today"
+    });
+
+    // Initialize datetime pickers
+    flatpickr("input[type=datetime-local]", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true
+    });
+
+    // Populate edit form
+    function populateEditForm(button) {
+        const id = button.getAttribute('data-id');
+        const punchIn = button.getAttribute('data-punchin');
+        const punchOut = button.getAttribute('data-punchout');
+        const status = button.getAttribute('data-status');
+        const notes = button.getAttribute('data-notes');
+
+        document.getElementById('editAttendanceId').value = id;
+        document.getElementById('editPunchIn').value = punchIn;
+        document.getElementById('editPunchOut').value = punchOut;
+        document.getElementById('editStatus').value = status;
+        document.getElementById('editNotes').value = notes || '';
+
+        // Update form action URL
+        const form = document.getElementById('editAttendanceForm');
+        form.action = `/admin/attendance/update/${id}`;
+    }
+
+    // Export to Excel function
+    function exportToExcel() {
+        const table = document.getElementById('attendanceTable');
+        let csv = [];
+
+        // Get headers
+        const headers = [];
+        for (let i = 0; i < table.rows[0].cells.length - 1; i++) { // -1 to exclude Actions column
+            headers.push(table.rows[0].cells[i].innerText);
+        }
+        csv.push(headers.join(','));
+
+        // Get rows
+        for (let i = 1; i < table.rows.length; i++) {
+            const row = [];
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // -1 to exclude Actions column
+                row.push(table.rows[i].cells[j].innerText);
+            }
+            csv.push(row.join(','));
+        }
+
+        // Download CSV
+        const csvString = csv.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+    }
+
+    // Auto-dismiss alerts
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+</body>
+</html>
