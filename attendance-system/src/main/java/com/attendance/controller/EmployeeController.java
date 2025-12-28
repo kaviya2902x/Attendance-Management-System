@@ -157,7 +157,9 @@ public class EmployeeController {
     }
 
     @PostMapping("/leave/apply")
-    public String applyLeave(@ModelAttribute Leave leave,
+    public String applyLeave(@RequestParam String leaveType,
+                             @RequestParam LocalDate startDate,
+                             @RequestParam LocalDate endDate,
                              @RequestParam String reason,
                              HttpSession session,
                              RedirectAttributes redirectAttributes) {
@@ -165,12 +167,16 @@ public class EmployeeController {
             Long userId = (Long) session.getAttribute("userId");
             User user = userService.getUserById(userId).orElseThrow();
 
+            Leave leave = new Leave();
             leave.setUser(user);
+            leave.setLeaveType(leaveType);
+            leave.setStartDate(startDate);
+            leave.setEndDate(endDate);
             leave.setReason(reason);
+
             leaveService.applyLeave(leave);
 
-            redirectAttributes.addFlashAttribute("success",
-                    "Leave applied successfully!");
+            redirectAttributes.addFlashAttribute("success", "Leave applied successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

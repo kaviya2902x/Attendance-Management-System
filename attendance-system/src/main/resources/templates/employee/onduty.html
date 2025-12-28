@@ -28,9 +28,16 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .info-card {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            border-left: 4px solid #0ea5e9;
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -99,123 +106,190 @@
                     <li class="nav-item">
                         <a class="nav-link" th:href="@{/employee/profile}">
                             <i class="bi bi-person"></i> Profile
-                        </a></li>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
 
         <!-- Main Content -->
         <main class="col-lg-10 main-content">
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 mb-2">On Duty Requests</h1>
-                    <p class="text-muted">Request on-duty assignments and track approvals</p>
+                    <h1 class="h3 mb-2">On Duty Management</h1>
+                    <p class="text-muted">Request and track official duty assignments</p>
                 </div>
                 <a th:href="@{/employee/dashboard}" class="btn btn-outline-primary">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
 
+            <!-- Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="h4 fw-bold text-primary"
+                             th:text="${totalRequests != null ? totalRequests : 0}">0</div>
+                        <small class="text-muted">Total Requests</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="h4 fw-bold text-warning">
+                            <span th:text="${pendingRequests != null ? pendingRequests : 0}">0</span>
+                        </div>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="h4 fw-bold text-success">
+                            <span th:text="${approvedRequests != null ? approvedRequests : 0}">0</span>
+                        </div>
+                        <small class="text-muted">Approved</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="h4 fw-bold text-info">
+                            <span th:text="${remainingDays != null ? remainingDays : 30}">30</span> days
+                        </div>
+                        <small class="text-muted">Balance This Year</small>
+                    </div>
+                </div>
+            </div>
+
             <!-- Information Card -->
-            <div class="card info-card mb-4">
+            <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-info-circle"></i> About On-Duty Requests</h5>
-                    <p class="card-text">
-                        On-duty requests are for official work assignments outside the regular workplace.
-                        These requests require supervisor approval and will be counted as working hours.
-                    </p>
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                <span>Counts as working hours</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                <span>Requires supervisor approval</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                <span>Travel expenses may apply</span>
-                            </div>
-                        </div>
-                    </div>
+                    <p>Official work assignments outside regular workplace count as working hours.</p>
                 </div>
             </div>
 
-            <!-- Coming Soon Message -->
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-tools display-1 text-muted mb-4"></i>
-                    <h3 class="mb-3">On-Duty Module Coming Soon</h3>
-                    <p class="text-muted mb-4">
-                        We're currently working on the On-Duty request module.
-                        This feature will be available in the next update.
-                    </p>
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <div class="card border-dashed mb-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">Planned Features</h6>
-                                    <ul class="list-unstyled">
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-success me-2"></i>
-                                            On-duty request submission
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-success me-2"></i>
-                                            Supervisor approval workflow
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-success me-2"></i>
-                                            Travel expense tracking
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-check text-success me-2"></i>
-                                            Integration with attendance system
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a th:href="@{/employee/dashboard}" class="btn btn-primary mt-3">
-                        <i class="bi bi-arrow-left"></i> Return to Dashboard
-                    </a>
-                </div>
-            </div>
-
-            <!-- Temporary Workaround -->
-            <div class="card mt-4">
+            <!-- Apply Form -->
+            <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-lightbulb"></i> Temporary Solution
+                    <i class="bi bi-plus-circle"></i> New On-Duty Request
                 </div>
                 <div class="card-body">
-                    <p class="mb-3">
-                        For now, you can use the following workaround for on-duty requests:
-                    </p>
-                    <ol>
-                        <li class="mb-2">
-                            Submit a regularization request for the days you were on duty
-                        </li>
-                        <li class="mb-2">
-                            In the reason field, mention "On-duty assignment"
-                        </li>
-                        <li class="mb-2">
-                            Attach any supporting documents via email to your supervisor
-                        </li>
-                        <li>
-                            Your supervisor will process it as a special case
-                        </li>
-                    </ol>
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Note:</strong> This is a temporary solution until the on-duty module is released.
+                    <form th:action="@{/employee/onduty/apply}" method="post">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Start Date *</label>
+                                <input type="date" name="startDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">End Date *</label>
+                                <input type="date" name="endDate" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Purpose/Work Description *</label>
+                            <textarea name="purpose" class="form-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Location</label>
+                                <input type="text" name="location" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Travel Mode</label>
+                                <select name="travelMode" class="form-select">
+                                    <option value="">Select Travel Mode</option>
+                                    <option value="FLIGHT">Flight</option>
+                                    <option value="TRAIN">Train</option>
+                                    <option value="CAR">Car</option>
+                                    <option value="BUS">Bus</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- On-Duty History -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history"></i> On-Duty History
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Period</th>
+                                <th>Days</th>
+                                <th>Purpose</th>
+                                <th>Status</th>
+                                <th>Applied On</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${onDuties != null}" th:each="onduty, stat : ${onDuties}">
+                                <td th:text="${stat.count}"></td>
+                                <td>
+                                    <span th:text="${onduty.startDate != null ? #temporals.format(onduty.startDate, 'dd/MM') : '---'}"></span> -
+                                    <span th:text="${onduty.endDate != null ? #temporals.format(onduty.endDate, 'dd/MM') : '---'}"></span>
+                                </td>
+                                <td>
+                                            <span class="badge bg-secondary"
+                                                  th:text="${onduty.totalDays != null ? onduty.totalDays : '---'}"></span>
+                                </td>
+                                <td>
+                                    <small th:text="${onduty.purpose != null ? onduty.purpose : '---'}"></small>
+                                </td>
+                                <td>
+                                            <span th:if="${onduty.status == 'PENDING'}"
+                                                  class="badge bg-warning">Pending</span>
+                                    <span th:if="${onduty.status == 'APPROVED'}"
+                                          class="badge bg-success">Approved</span>
+                                    <span th:if="${onduty.status == 'REJECTED'}"
+                                          class="badge bg-danger">Rejected</span>
+                                </td>
+                                <td th:text="${onduty.appliedOn != null ? #temporals.format(onduty.appliedOn, 'dd/MM/yyyy') : '---'}"></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:if="${onduty.status == 'PENDING'}"
+                                           th:href="@{/employee/onduty/cancel/} + ${onduty.id}"
+                                           class="btn btn-outline-danger"
+                                           onclick="return confirm('Cancel this request?')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${onDuties == null or onDuties.isEmpty()}">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-briefcase display-6 d-block mb-2"></i>
+                                    No on-duty requests found
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -224,5 +298,20 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="startDate"]').min = today;
+    document.querySelector('input[name="endDate"]').min = today;
+</script>
 </body>
 </html>

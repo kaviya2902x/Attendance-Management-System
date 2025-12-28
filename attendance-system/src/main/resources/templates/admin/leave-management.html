@@ -39,23 +39,6 @@
             padding: 6px 12px;
             border-radius: 20px;
         }
-        .tab-content {
-            padding: 20px;
-            background: white;
-            border-radius: 0 0 12px 12px;
-            border: 1px solid #dee2e6;
-            border-top: none;
-        }
-        .nav-tabs .nav-link {
-            border: none;
-            color: #6c757d;
-            padding: 12px 24px;
-        }
-        .nav-tabs .nav-link.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-            background: transparent;
-        }
         .leave-card {
             border-left: 4px solid;
             margin-bottom: 15px;
@@ -164,7 +147,7 @@
                 <div class="col-md-3">
                     <div class="card text-center">
                         <div class="card-body">
-                            <div class="h4 fw-bold text-warning" th:text="${pendingLeaves.size()}">0</div>
+                            <div class="h4 fw-bold text-warning" th:text="${pendingCount != null ? pendingCount : 0}">0</div>
                             <small class="text-muted">Pending Requests</small>
                         </div>
                     </div>
@@ -172,8 +155,7 @@
                 <div class="col-md-3">
                     <div class="card text-center">
                         <div class="card-body">
-                            <div class="h4 fw-bold text-success"
-                                 th:text="${allLeaves.stream().filter(l -> l.status == 'APPROVED').count()}">0</div>
+                            <div class="h4 fw-bold text-success" th:text="${approvedCount != null ? approvedCount : 0}">0</div>
                             <small class="text-muted">Approved</small>
                         </div>
                     </div>
@@ -181,8 +163,7 @@
                 <div class="col-md-3">
                     <div class="card text-center">
                         <div class="card-body">
-                            <div class="h4 fw-bold text-danger"
-                                 th:text="${allLeaves.stream().filter(l -> l.status == 'REJECTED').count()}">0</div>
+                            <div class="h4 fw-bold text-danger" th:text="${rejectedCount != null ? rejectedCount : 0}">0</div>
                             <small class="text-muted">Rejected</small>
                         </div>
                     </div>
@@ -190,34 +171,21 @@
                 <div class="col-md-3">
                     <div class="card text-center">
                         <div class="card-body">
-                            <div class="h4 fw-bold text-primary" th:text="${allLeaves.size()}">0</div>
+                            <div class="h4 fw-bold text-primary" th:text="${totalCount != null ? totalCount : 0}">0</div>
                             <small class="text-muted">Total Requests</small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="leaveTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab"
-                            data-bs-target="#pending" type="button" role="tab">
-                        <i class="bi bi-hourglass-split"></i> Pending Requests
-                        <span class="badge bg-warning ms-2" th:text="${pendingLeaves.size()}">0</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="all-tab" data-bs-toggle="tab"
-                            data-bs-target="#all" type="button" role="tab">
-                        <i class="bi bi-list-check"></i> All Leaves
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="leaveTabContent">
-                <!-- Pending Requests Tab -->
-                <div class="tab-pane fade show active" id="pending" role="tabpanel">
-                    <div th:if="${pendingLeaves.isEmpty()}">
+            <!-- Pending Requests -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-hourglass-split"></i> Pending Leave Requests
+                    <span class="badge bg-warning ms-2" th:text="${pendingCount != null ? pendingCount : 0}">0</span>
+                </div>
+                <div class="card-body">
+                    <div th:if="${pendingLeaves != null and pendingLeaves.isEmpty()}">
                         <div class="text-center py-5">
                             <i class="bi bi-check-circle display-1 text-muted mb-3"></i>
                             <h4>No Pending Leave Requests</h4>
@@ -225,7 +193,7 @@
                         </div>
                     </div>
 
-                    <div th:each="leave : ${pendingLeaves}" class="card leave-card" th:classappend="${leave.leaveType.toLowerCase()}">
+                    <div th:each="leave : ${pendingLeaves}" class="card leave-card mb-3" th:classappend="${leave.leaveType.toLowerCase()}">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>
@@ -241,15 +209,15 @@
                                             </span>
                                         <span class="ms-2">
                                                 <i class="bi bi-calendar"></i>
-                                                <span th:text="${#temporals.format(leave.startDate, 'dd MMM yyyy')}"></span> -
-                                                <span th:text="${#temporals.format(leave.endDate, 'dd MMM yyyy')}"></span>
-                                                (<span th:text="${leave.totalDays}"></span> days)
+                                                <span th:text="${leave.startDate != null ? #temporals.format(leave.startDate, 'dd MMM yyyy') : ''}"></span> -
+                                                <span th:text="${leave.endDate != null ? #temporals.format(leave.endDate, 'dd MMM yyyy') : ''}"></span>
+                                                (<span th:text="${leave.totalDays != null ? leave.totalDays : ''}"></span> days)
                                             </span>
                                     </p>
                                 </div>
                                 <div class="text-end">
                                     <small class="text-muted d-block">
-                                        Applied on: <span th:text="${#temporals.format(leave.appliedOn, 'dd MMM yyyy')}"></span>
+                                        Applied on: <span th:text="${leave.appliedOn != null ? #temporals.format(leave.appliedOn, 'dd MMM yyyy') : ''}"></span>
                                     </small>
                                     <span class="badge bg-warning">Pending Approval</span>
                                 </div>
@@ -257,7 +225,7 @@
 
                             <div class="mb-3">
                                 <strong>Reason:</strong>
-                                <p class="mb-0" th:text="${leave.reason}"></p>
+                                <p class="mb-0" th:text="${leave.reason != null ? leave.reason : 'No reason provided'}"></p>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center">
@@ -284,67 +252,68 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- All Leaves Tab -->
-                <div class="tab-pane fade" id="all" role="tabpanel">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                    <tr>
-                                        <th>Employee</th>
-                                        <th>Leave Type</th>
-                                        <th>Period</th>
-                                        <th>Days</th>
-                                        <th>Applied On</th>
-                                        <th>Status</th>
-                                        <th>Approved By</th>
-                                        <th>Comments</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr th:each="leave : ${allLeaves}">
-                                        <td>
-                                            <strong th:text="${leave.user.firstName + ' ' + leave.user.lastName}"></strong>
-                                            <div class="small text-muted" th:text="${leave.user.department}"></div>
-                                        </td>
-                                        <td>
-                                                    <span class="badge" th:classappend="${leave.leaveType == 'SICK' ? 'bg-danger' :
-                                                                                       leave.leaveType == 'CASUAL' ? 'bg-primary' :
-                                                                                       leave.leaveType == 'EARNED' ? 'bg-success' : 'bg-info'}">
-                                                        <span th:text="${leave.leaveType}"></span>
-                                                    </span>
-                                        </td>
-                                        <td>
-                                            <small>
-                                                <span th:text="${#temporals.format(leave.startDate, 'dd/MM/yy')}"></span> -
-                                                <span th:text="${#temporals.format(leave.endDate, 'dd/MM/yy')}"></span>
-                                            </small>
-                                        </td>
-                                        <td th:text="${leave.totalDays}"></td>
-                                        <td th:text="${#temporals.format(leave.appliedOn, 'dd/MM/yy')}"></td>
-                                        <td>
-                                            <span th:if="${leave.status == 'PENDING'}" class="badge bg-warning">Pending</span>
-                                            <span th:if="${leave.status == 'APPROVED'}" class="badge bg-success">Approved</span>
-                                            <span th:if="${leave.status == 'REJECTED'}" class="badge bg-danger">Rejected</span>
-                                        </td>
-                                        <td>
-                                            <small th:text="${leave.approvedBy ?: '---'}" class="text-muted"></small>
-                                        </td>
-                                        <td>
-                                            <small th:text="${leave.comments ?: '---'}" class="text-muted"></small>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${allLeaves.isEmpty()}">
-                                        <td colspan="8" class="text-center text-muted py-4">
-                                            No leave records found
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+            <!-- All Leaves -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-list-check"></i> All Leave Requests
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>Period</th>
+                                <th>Days</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                                <th>Approved By</th>
+                                <th>Comments</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="leave : ${allLeaves}">
+                                <td>
+                                    <strong th:text="${leave.user.firstName + ' ' + leave.user.lastName}"></strong>
+                                    <div class="small text-muted" th:text="${leave.user.department}"></div>
+                                </td>
+                                <td>
+                                            <span class="badge" th:classappend="${leave.leaveType == 'SICK' ? 'bg-danger' :
+                                                                               leave.leaveType == 'CASUAL' ? 'bg-primary' :
+                                                                               leave.leaveType == 'EARNED' ? 'bg-success' : 'bg-info'}">
+                                                <span th:text="${leave.leaveType}"></span>
+                                            </span>
+                                </td>
+                                <td>
+                                    <small>
+                                        <span th:text="${leave.startDate != null ? #temporals.format(leave.startDate, 'dd/MM/yy') : ''}"></span> -
+                                        <span th:text="${leave.endDate != null ? #temporals.format(leave.endDate, 'dd/MM/yy') : ''}"></span>
+                                    </small>
+                                </td>
+                                <td th:text="${leave.totalDays}"></td>
+                                <td th:text="${leave.appliedOn != null ? #temporals.format(leave.appliedOn, 'dd/MM/yy') : ''}"></td>
+                                <td>
+                                    <span th:if="${leave.status == 'PENDING'}" class="badge bg-warning">Pending</span>
+                                    <span th:if="${leave.status == 'APPROVED'}" class="badge bg-success">Approved</span>
+                                    <span th:if="${leave.status == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                </td>
+                                <td>
+                                    <small th:text="${leave.approvedBy != null ? leave.approvedBy : '---'}" class="text-muted"></small>
+                                </td>
+                                <td>
+                                    <small th:text="${leave.comments != null ? leave.comments : '---'}" class="text-muted"></small>
+                                </td>
+                            </tr>
+                            <tr th:if="${allLeaves == null or allLeaves.isEmpty()}">
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    No leave records found
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -434,16 +403,6 @@
             bsAlert.close();
         });
     }, 5000);
-
-    // Initialize tabs
-    const triggerTabList = document.querySelectorAll('#leaveTab button');
-    triggerTabList.forEach(triggerEl => {
-        const tabTrigger = new bootstrap.Tab(triggerEl);
-        triggerEl.addEventListener('click', event => {
-            event.preventDefault();
-            tabTrigger.show();
-        });
-    });
 </script>
 </body>
 </html>

@@ -165,7 +165,7 @@
                         </div>
                         <div>
                             <small>Database</small>
-                            <div class="small text-muted" th:text="${totalUsers + ' users'}"></div>
+                            <div class="small text-muted" th:text="${totalUsers} + ' users'"></div>
                         </div>
                     </div>
                 </div>
@@ -175,12 +175,12 @@
         <!-- Main Content -->
         <main class="col-lg-10 main-content">
             <!-- Alerts -->
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show">
                 <i class="bi bi-exclamation-triangle"></i>
                 <span th:text="${error}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show">
                 <i class="bi bi-check-circle"></i>
                 <span th:text="${success}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -257,7 +257,7 @@
                                     <div class="text-muted">Absent</div>
                                 </div>
                                 <div class="col-md-4 text-center">
-                                    <div class="display-4 fw-bold text-primary" th:text="${activeSessions.size()}">0</div>
+                                    <div class="display-4 fw-bold text-primary" th:text="${activeSessions != null ? activeSessions.size() : 0}">0</div>
                                     <div class="text-muted">Active Sessions</div>
                                 </div>
                             </div>
@@ -275,11 +275,17 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr th:each="attendance : ${todayAttendance}">
+                                    <tr th:if="${todayAttendance != null}" th:each="attendance : ${todayAttendance}">
                                         <td th:text="${attendance.user.firstName + ' ' + attendance.user.lastName}"></td>
                                         <td th:text="${attendance.user.department}"></td>
-                                        <td th:text="${attendance.punchIn != null ? #temporals.format(attendance.punchIn, 'hh:mm a') : '---'}"></td>
-                                        <td th:text="${attendance.punchOut != null ? #temporals.format(attendance.punchOut, 'hh:mm a') : '---'}"></td>
+                                        <td th:if="${attendance.punchIn != null}">
+                                            <span th:text="${#temporals.format(attendance.punchIn, 'hh:mm a')}"></span>
+                                        </td>
+                                        <td th:unless="${attendance.punchIn != null}">---</td>
+                                        <td th:if="${attendance.punchOut != null}">
+                                            <span th:text="${#temporals.format(attendance.punchOut, 'hh:mm a')}"></span>
+                                        </td>
+                                        <td th:unless="${attendance.punchOut != null}">---</td>
                                         <td th:text="${attendance.totalHours != null ? attendance.totalHours + ' hrs' : '---'}"></td>
                                         <td>
                                                     <span th:if="${attendance.status == 'PRESENT'}"
@@ -288,7 +294,7 @@
                                                   class="badge bg-danger">Absent</span>
                                         </td>
                                     </tr>
-                                    <tr th:if="${todayAttendance.isEmpty()}">
+                                    <tr th:if="${todayAttendance == null or todayAttendance.isEmpty()}">
                                         <td colspan="6" class="text-center text-muted">
                                             No attendance records for today
                                         </td>
@@ -307,17 +313,18 @@
                             <i class="bi bi-clock"></i> Active Sessions
                         </div>
                         <div class="card-body">
-                            <div th:if="${activeSessions.isEmpty()}">
+                            <div th:if="${activeSessions == null or activeSessions.isEmpty()}">
                                 <p class="text-muted text-center">No active sessions</p>
                             </div>
-                            <div th:each="session : ${activeSessions}" class="mb-2">
+                            <!-- CHANGED: Renamed 'session' to 'activeSession' to avoid Thymeleaf conflict -->
+                            <div th:if="${activeSessions != null}" th:each="activeSession : ${activeSessions}" class="mb-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong th:text="${session.user.firstName}"></strong>
-                                        <small class="text-muted d-block" th:text="${session.user.department}"></small>
+                                        <strong th:text="${activeSession.user.firstName}"></strong>
+                                        <small class="text-muted d-block" th:text="${activeSession.user.department}"></small>
                                     </div>
                                     <div class="text-end">
-                                        <small th:text="${#temporals.format(session.punchIn, 'hh:mm a')}"></small>
+                                        <small th:text="${#temporals.format(activeSession.punchIn, 'hh:mm a')}"></small>
                                         <div class="badge bg-warning">Active</div>
                                     </div>
                                 </div>
@@ -369,7 +376,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr th:each="user : ${recentUsers}">
+                                    <tr th:if="${recentUsers != null}" th:each="user : ${recentUsers}">
                                         <td th:text="${user.employeeId}"></td>
                                         <td th:text="${user.firstName + ' ' + user.lastName}"></td>
                                         <td th:text="${user.department}"></td>
@@ -382,7 +389,7 @@
                                             <span th:unless="${user.active}" class="badge bg-secondary">Inactive</span>
                                         </td>
                                     </tr>
-                                    <tr th:if="${recentUsers.isEmpty()}">
+                                    <tr th:if="${recentUsers == null or recentUsers.isEmpty()}">
                                         <td colspan="5" class="text-center text-muted">
                                             No recent users
                                         </td>
@@ -402,10 +409,10 @@
                             <a th:href="@{/admin/leave-management}" class="btn btn-sm btn-primary">View All</a>
                         </div>
                         <div class="card-body">
-                            <div th:if="${recentLeaves.isEmpty()}">
+                            <div th:if="${recentLeaves == null or recentLeaves.isEmpty()}">
                                 <p class="text-muted text-center">No pending leave requests</p>
                             </div>
-                            <div th:each="leave : ${recentLeaves}" class="mb-3 p-2 border rounded">
+                            <div th:if="${recentLeaves != null}" th:each="leave : ${recentLeaves}" class="mb-3 p-2 border rounded">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <strong th:text="${leave.user.firstName + ' ' + leave.user.lastName}"></strong>
@@ -421,9 +428,9 @@
                                         (<span th:text="${leave.totalDays}"></span> days)
                                     </small>
                                     <div class="mt-1">
-                                            <span class="badge" th:classappend="${leave.leaveType == 'SICK' ? 'bg-danger' :
-                                                                               leave.leaveType == 'CASUAL' ? 'bg-primary' :
-                                                                               leave.leaveType == 'EARNED' ? 'bg-success' : 'bg-info'}">
+                                            <span th:class="${leave.leaveType == 'SICK'} ? 'badge bg-danger' :
+                                                              ${leave.leaveType == 'CASUAL'} ? 'badge bg-primary' :
+                                                              ${leave.leaveType == 'EARNED'} ? 'badge bg-success' : 'badge bg-info'">
                                                 <span th:text="${leave.leaveType}"></span>
                                             </span>
                                         <small class="ms-2" th:text="${leave.reason}"></small>
